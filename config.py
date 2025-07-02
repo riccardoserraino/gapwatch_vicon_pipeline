@@ -1,0 +1,27 @@
+###########################################################################################################
+# Libraries
+###########################################################################################################
+
+# General purpose and plotting
+import numpy as np
+import rosbag
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import time
+import math
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+
+# EMG----------------------------------------------
+from scipy.signal import butter, filtfilt, iirnotch
+from sklearn.decomposition import NMF
+from sklearn.decomposition import PCA
+
+
+# Motion capture-----------------------------------
+from scipy.spatial.transform import Rotation as R
+from scipy.optimize import linear_sum_assignment, linear_sum_assignment
+from scipy.spatial.distance import cdist
+
