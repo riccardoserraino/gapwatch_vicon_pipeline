@@ -73,43 +73,20 @@ def normalize_angle(angle_f1, angle_f2, angle_f3, angle_f4, angle_f5):
 
 #----------------------------------------------------------------------------------------------------------
 # Compute the angle of closure for a given finger and knuckle.
-def compute_finger_angle(finger_rel, hand_point):
+def calculate_finger_angle(finger_pos, hand_point, axis_offset):
     """
-    Computes the angle between a finger and the knuckle axis of the hand.
-
-    Parameters:
-        finger_rel: np.ndarray, the relative position of the finger in 3D space.
-        hand_point: object, the point representing the hand in 3D space.
-
-    Returns:
-        float: the angle in degrees between the finger and the knuckle axis.
-    """
-
-    x_h, y_h, z_h = hand_point.get_data_3d()
     
-    finger_coord = np.array([finger_rel[0], finger_rel[1], finger_rel[2]])
-    hand_coord = np.array([x_h[0], y_h[0], z_h[0]])
-
-    knuckle_axis = np.array([x_h[0] + 0.1, y_h[0], -0.01]) - hand_coord
-
+    """
+    
+    hand_coord = hand_point[:3]
+    finger_coord = finger_pos[:3]
+    
+    knuckle_axis = (hand_coord + axis_offset) - hand_coord
     knuckle_axis = knuckle_axis / np.linalg.norm(knuckle_axis)
+    
     finger_axis = finger_coord - hand_coord
     finger_axis = finger_axis / np.linalg.norm(finger_axis)
     
     return angle_between_vectors(knuckle_axis, finger_axis)
 
-
 #----------------------------------------------------------------------------------------------------------
-# Function to update finger marker and connecting line.
-def update_finger_visual(marker, line, hand_point, finger_rel):
-    """
-    Updates the position of a finger marker and its connecting line to the hand point.
-    Parameters:
-        marker: object, the marker representing the finger in 3D space.
-        line: object, the line connecting the hand point to the finger marker.
-        hand_point: object, the point representing the hand in 3D space.
-        finger_rel: np.ndarray, the relative position of the finger in 3D space.
-    """
-
-    pos_point(marker, finger_rel[0], finger_rel[1], finger_rel[2])
-    pos_line(line, hand_point, marker)

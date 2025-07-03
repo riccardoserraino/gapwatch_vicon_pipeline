@@ -178,7 +178,7 @@ def plot_all_results(emg_data, E_reconstructed, W, H, selected_synergies, title=
 #-------------------------------------------------------------------------------------------
 
 
-def plot_sigma_matrix(scaled_matrix, title="Flexion-Extention Matrix"):
+def plot_sigma_matrix_emg(scaled_matrix, title="Flexion-Extention Matrix"):
     """
     Plots a 1 x N matrix showing values between 0 and 1.
     
@@ -220,6 +220,49 @@ def plot_dominant_synergy_line(dominant_synergy, title="Dominant Synergy Over Ti
     plt.ylabel("Dominant Synergy")
     plt.title(title)
     plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+
+#-------------------------------------------------------------------------------------------
+# Sigma matrices comparison
+def plot_sigma_matrices(sigma_motion, sigma_emg, sigma_error):
+    """
+    Plots sigma matrices comparison.
+
+    Parameters: 
+        - sigma_motion: matrix defining hand closure obtained from vicon data.
+        - sigma_emg: matrix defining hand closure obtained from gapwatch data.
+        - sigma_error: matrix defining error between the two input matrices.
+
+    """
+    plt.figure(figsize=(10, 6))
+
+    # Plot Sigma EMG
+    plt.subplot(3, 1, 1)
+    plt.plot(sigma_motion, label='Sigma EMG', color='blue')
+    plt.ylabel('Sigma EMG')
+    plt.ylim(0, 1.1)
+    plt.title('Synergy-based Hand Closure Estimation (GapWatch)')
+    plt.legend()
+
+    # Plot Sigma Motion
+    plt.subplot(3, 1, 2)
+    plt.plot(sigma_emg, label='Sigma Motion (Vicon)', color='green')
+    plt.ylabel('Sigma Motion')
+    plt.ylim(0, 1.1)
+    plt.title('Kinematics-based Hand Closure Estimation (Vicon)')
+    plt.legend()
+
+    # Plot Sigma Error
+    plt.subplot(3, 1, 3)
+    plt.plot(sigma_error, label='Error |Sigma Motion - Sigma EMG|', color='red')
+    plt.xlabel('Time (samples)')
+    plt.ylabel('Absolute Error')
+    plt.ylim(0, 1.1)
+    plt.title('Difference Between EMG and Motion Sigma Matrices')
+    plt.legend()
+
     plt.tight_layout()
     plt.show()
 
