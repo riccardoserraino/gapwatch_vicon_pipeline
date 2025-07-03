@@ -24,4 +24,5 @@ from sklearn.decomposition import PCA
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import linear_sum_assignment, linear_sum_assignment
 from scipy.spatial.distance import cdist
-
+from ikpy.chain import Chain
+from ikpy.link import URDFLink

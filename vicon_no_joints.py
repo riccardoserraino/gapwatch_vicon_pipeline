@@ -1,9 +1,10 @@
 from config import *
-from motion_tracking.utils_general import *
-from motion_tracking.utils_kinematics import *
-from motion_tracking.utils_visual import *
-from motion_tracking.utils_loading import *
 
+# Utils functions
+from utils.utils_loading import *
+from utils.utils_motion import * 
+from utils.utils_synergies import *
+from utils.utils_visual import *
 
 
 ########################################################################
@@ -144,11 +145,11 @@ line_f5, = ax.plot([], [], [], 'k-', linewidth=2)
 # These are the initial positions of the fingers in the hand frame
 # It depends on the subject's hand initial position
 # Used to avoid the problem of the fingers jumping from one position to another when the real animation starts
-f1_rel_prev = np.array([0.15954817, -0.04850752, -0.01941226, 1])
-f2_rel_prev = np.array([0.14718147, 0.12169835, -0.04258014, 1])
-f3_rel_prev = np.array([0.02415149, 0.13794686, -0.09176365, 1])
-f4_rel_prev = np.array([0.18140122, 0.06914709, -0.01804172, 1])
-f5_rel_prev = np.array([1.82499501e-01, 9.96591903e-04, -1.92990169e-02, 1])
+f1_rel_prev = np.array([0.13868391, -0.05139445,  0.00857016, 1])
+f2_rel_prev = np.array([0.11976245,  0.13734637, -0.00763299, 1])
+f3_rel_prev = np.array([-0.0369033, 0.15533912, -0.02849389, 1])
+f4_rel_prev = np.array([0.16185893, 0.08565602, 0.008876, 1])
+f5_rel_prev = np.array([0.16463813, 0.03239017, 0.01738579, 1])
 m_nulla = np.array([[1,0,0],[0,1,0],[0,0,1]])
 
 
