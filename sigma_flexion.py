@@ -509,8 +509,6 @@ print(f"Samples in EMG Sigma matrix: {timestamps_emg_test}\n")
 sigma_emg = np.array(sigma_emg)
 
 sigma_motion = np.array(sigma_motion)
-sigma_motion -= np.min(sigma_motion)
-sigma_motion = np.clip(sigma_motion, 0, 1)
 
 # Compute the error between the two sigma matrices
 sigma_error = np.abs(sigma_motion - sigma_emg)
