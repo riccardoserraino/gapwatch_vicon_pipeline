@@ -22,7 +22,7 @@ base_path = {
 }
 
 train_dataset = "power_grasp1.bag"     # <-- Change here to use a different file
-test_dataset = "power_grasp2.bag"      # <-- Change here to use a different file
+test_dataset = "pen9.bag"      # <-- Change here to use a different file
 
 
 
@@ -126,7 +126,8 @@ reconstructed_t = nmf_emg_reconstruction(W, H_test, filtered_emg_test.T)
 print(f" - Reconstructed EMG shape: {reconstructed_nmf.shape}\n") # Should be (testdata_n_samples, n_channels) after doing the transpose for plotting purposes
 print("Reconstruction completed.\n")
 
-plot_all_results(filtered_emg_test.T, reconstructed_t, W, H_test, optimal_synergies_nmf, title='Reconstruction of Original Test Data with Train Data Synergies')
+plot_all_results(filtered_emg_test.T, reconstructed_t, W, H_test, optimal_synergies_nmf, 
+                 title='Reconstruction of Original Test Data with Train Data Synergies - Power grasp 2')
 
 
 

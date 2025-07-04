@@ -1,0 +1,4 @@
+In this folder one can find the motion tracking with hand model without 
+joints and the sigma flexion evaluation based on this model. 
+
+The scripts in the main branch are the more accurate.
