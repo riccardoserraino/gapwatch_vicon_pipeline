@@ -197,7 +197,7 @@ def scale_synergy_signal(X, emg_data):
 #-------------------------------------------------------------------------------------------
 # Functions to filter the data, has been developed 2 approaches: butterworth bandpass and notch
 
-# Band-pass 10-500Hz, Notch 50Hz
+# Band-pass 20-500Hz, Notch 50Hz
 # 1. Bandpass filter design
 def butter_bandpass(signal, fs, lowcut=20, highcut=500, order=5):
     """Applies a Butterworth bandpass filter to the signal."""
@@ -218,7 +218,7 @@ def notch_filter(signal, fs, n_freq=50.0, Q=30.0):
     return filtered_n
 
 # 3. RMS in 200 ms Windows 
-def compute_rms(signal, window_size=200):
+def compute_rms(signal, window_size=500):
     """Computes the RMS of the signal using a moving window."""
     # RMS over sliding windows
     squared = np.power(signal, 2)
@@ -294,6 +294,7 @@ def find_max_difference(matrix):
     
     return highest_value, corresponding_value, max_difference
 
+
 #-------------------------------------------------------------------------------------------
 def scale_differences(matrix, max_diff):
     """
@@ -318,5 +319,30 @@ def scale_differences(matrix, max_diff):
     return saturated.reshape(1, -1)
 
 
+#-------------------------------------------------------------------------------------------
+# Function to align baselines of multiple signals
 
+def align_signal_baselines(signals, method='mean'):
+    """
+    Aligns all signals to the same baseline.
 
+    Parameters:
+    - signals: list of 1D numpy arrays
+    - method: 'mean', 'first', or 'min'
+
+    Returns:
+    - list of aligned signals
+    """
+    if method == 'mean':
+        offsets = [np.mean(s) for s in signals]
+    elif method == 'first':
+        offsets = [s[0] for s in signals]
+    elif method == 'min':
+        offsets = [np.min(s) for s in signals]
+    else:
+        raise ValueError("Invalid method")
+
+    reference = np.mean(offsets)  # Align to the group mean
+    return [s - (off - reference) for s, off in zip(signals, offsets)]
+
+#-------------------------------------------------------------------------------------------

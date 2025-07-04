@@ -1,3 +1,5 @@
+# Hand model with no joints in the finger model and no inverse kinematics
+
 from config import *
 
 # Utils functions
@@ -5,7 +7,6 @@ from utils.utils_loading import *
 from utils.utils_motion import * 
 from utils.utils_synergies import *
 from utils.utils_visual import *
-
 
 
 
@@ -94,7 +95,6 @@ min_length = min(len(pos_hand), len(rot_hand), len(pos_f1), len(pos_f2), len(pos
 
 
 
-
 ########################################################################
 # Gapwatch Data Processing - Extract synergies from the EMG train data 
 #                          - Estimate the synergy activation patterns of the test data
@@ -162,26 +162,24 @@ print("Reconstruction completed.\n")
 highest_value, correspondent_value, max_difference = find_max_difference(H_train)
 
 sigma_emg = scale_differences(H_test, max_difference)
-print("\nInsights into the flexion/extention synergy matrix:")
+print("\nInsights into the flexion/extention synergy matrix O:")
 print(f" - Highest value in H_train row: {highest_value}")
 print(f" - Corresponding value in H_train row+1: {correspondent_value}")
 print(f" - Maximum difference in H_train: {max_difference}")
-print(f" - Flexion/Extension synergy matrix shape: {sigma_emg.shape}\n")
+print(f" - Flexion/Extension synergy matrix O shape: {sigma_emg.shape}\n")
 
 
 
 
 ########################################################################
-# Vicon Data Processing - Extract Hand and Finger Positions
-#                       - Plot Animation
-#                       - Calculate Angles of Closure
-#                       - Compute the Sigma matrix for the Motion test data to define hand closure
+# Vicon Data Processing - Extract hand and finger positions
+#                       - Calculate angles of closure
+#                       - Get sigma matrix values
 ########################################################################
 
 #-----------------------------------------------------------------------
-# Initialization of the useful parameters for plotting and analysis
+# Initialization of the useful parameters for proccessing purposes
 #----------------------------------------------------------------------- 
-# Create the sigma matrix for vicon data
 sigma_motion = []
 max_angle_of_closure = 0
 min_angle_of_closure = 160
@@ -190,6 +188,28 @@ min_angle_of_closure = 160
 #--------------------------------------------------------------------------
 # Hand model initialization
 #--------------------------------------------------------------------------
+# The hand model is defined by a set of points that represent the structure of the hand and fingers.
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.set_xlim(-0.2, 0.2)
+ax.set_ylim(-0.2, 0.2)
+ax.set_zlim(-0.2, 0.2)
+
+# Definition of the visual elements of the hand
+#name = ax.plot([x],[y],[z], 'color/shape', size)
+origin,   = ax.plot([], [], [], 'bo', markersize=5)
+point_h1, = ax.plot([], [], [], 'bo', markersize=5)
+point_h2, = ax.plot([], [], [], 'bo', markersize=5)
+point_h3, = ax.plot([], [], [], 'bo', markersize=5)
+point_h4, = ax.plot([], [], [], 'bo', markersize=5)
+point_h5, = ax.plot([], [], [], 'bo', markersize=5)
+point_h6, = ax.plot([], [], [], 'bo', markersize=5)
+line_h1, = ax.plot([], [], [], 'k-', linewidth=2)
+line_h2, = ax.plot([], [], [], 'k-', linewidth=2)
+line_h3, = ax.plot([], [], [], 'k-', linewidth=2)
+line_h4, = ax.plot([], [], [], 'k-', linewidth=2)
+line_h5, = ax.plot([], [], [], 'k-', linewidth=2)
+line_h6, = ax.plot([], [], [], 'k-', linewidth=2)
 
 point_h1 = [-0.01, 0.01, -0.025]
 point_h2 = [-0.01, -0.06, -0.025]
@@ -199,29 +219,15 @@ point_h5 = [0.09, 0.03, -0.025]
 point_h6 = [0.07, 0.07, -0.025]
 
 
-# Definition of initial pose for consistency in plotting (defined wrt to the subject's hand neutral position)
-f1_rel_prev = np.array([0.13868391, -0.05139445,  0.00857016, 1])
-f2_rel_prev = np.array([0.11976245,  0.13734637, -0.00763299, 1])
-f3_rel_prev = np.array([-0.0369033, 0.15533912, -0.02849389, 1])
-f4_rel_prev = np.array([0.16185893, 0.08565602, 0.008876, 1])
-f5_rel_prev = np.array([0.16463813, 0.03239017, 0.01738579, 1])
-m_nulla = np.array([[1,0,0],[0,1,0],[0,0,1]])
-
-
-#--------------------------------------------------------------------------
-# Inverse Kinematics useful definition
-#--------------------------------------------------------------------------
-
-# Definition of fingers total length
+# Definition of fingers length
 little_length = 0.085
-ring_length = 0.13
-middle_length = 0.14
-index_length =  0.12
-thumb_length = 0.17
+ring_length = 0.1
+middle_length = 0.13
+index_length =  0.1
+thumb_length = 0.14
 
-
-
-# Little finger definition chain
+# Finger chains ddefinition for inverse kinematic model
+# Little definition
 little_chain = Chain(name='ring', links=[
     URDFLink(
         name="joint1",
@@ -252,7 +258,7 @@ little_chain = Chain(name='ring', links=[
     )
 ])
 
-# Ring finger definition chain
+# Ring definition
 ring_chain = Chain(name='ring', links=[
     URDFLink(
         name="joint1",
@@ -283,7 +289,7 @@ ring_chain = Chain(name='ring', links=[
     )
 ])
 
-# Midlle finger definition chain
+# Midlle definition
 middle_chain = Chain(name='middle', links=[
     URDFLink(
         name="joint1",
@@ -314,7 +320,7 @@ middle_chain = Chain(name='middle', links=[
     )
 ])
 
-# Index finger definition chain
+# Index definition
 index_chain = Chain(name='index', links=[
     URDFLink(
         name="joint1",
@@ -345,7 +351,7 @@ index_chain = Chain(name='index', links=[
     )
 ])
 
-# Thumb finger definition chain 
+# Thumb definition
 thumb_chain = Chain(name='thumb', links=[
     URDFLink(
         name="joint1",
@@ -377,11 +383,34 @@ thumb_chain = Chain(name='thumb', links=[
 ])
 
 
-#--------------------------------------------------------------------------
-# Animation loop
-#--------------------------------------------------------------------------
-for i in range(min_length):
+# Define the relative fingers position with respect to the hand frame
+# These are the initial positions of the fingers in the hand frame
+f1_rel_prev = np.array([0.15954817, -0.04850752, -0.01941226, 1])
+f2_rel_prev = np.array([0.14718147, 0.12169835, -0.04258014, 1])
+f3_rel_prev = np.array([0.02415149, 0.13794686, -0.09176365, 1])
+f4_rel_prev = np.array([0.18140122, 0.06914709, -0.01804172, 1])
+f5_rel_prev = np.array([1.82499501e-01, 9.96591903e-04, -1.92990169e-02, 1])
+m_nulla = np.array([[1,0,0],[0,1,0],[0,0,1]])
 
+# Initialize chain artists, used to clear from the previous iteration chains representation
+finger_line_little = None
+finger_scatter_little = None
+finger_line_ring = None
+finger_scatter_ring = None
+finger_line_middle = None
+finger_scatter_middle = None
+finger_line_index = None
+finger_scatter_index = None
+finger_line_thumb = None
+finger_scatter_thumb = None
+
+
+#-----------------------------------------------------------------------
+# Angles of closure - Sigma values computation
+#-----------------------------------------------------------------------
+
+for i in range(len(pos_hand)):
+    
     # Loading of the current position of the hand and fingers wrt the world frame
     x1, y1, z1 = pos_hand[i]
     x_f1, y_f1, z_f1 = pos_f1[i]
@@ -390,13 +419,14 @@ for i in range(min_length):
     x_f4, y_f4, z_f4 = pos_f4[i]
     x_f5, y_f5, z_f5 = pos_f5[i]
 
-
-    # Rotation matrix calculation to pass from the world frame to the hand frame
+    # Rotation matrix calculation
+    # to pass from the world frame to the hand frame
     rotation_matrix = from_q_to_rotation(rot_hand[i])
     if(rotation_matrix == m_nulla).all():
         continue
-    
-    # Homogeneous transformation matrix to pass from the world frame to the hand frame
+
+    # Homogeneous transformation matrix
+    # to make the base frame pass from the world frame to the hand frame
     T = np.eye(4)
     T[:3, :3] = rotation_matrix
     T[:3, 3] = np.array([x1, y1, z1])
@@ -408,9 +438,8 @@ for i in range(min_length):
     f4 = np.linalg.inv(T) @ np.array([x_f4, y_f4, z_f4, 1])
     f5 = np.linalg.inv(T) @ np.array([x_f5, y_f5, z_f5, 1])
 
-
-    # Hungarian algorithm to match the current finger positions with the previous ones
-    # This is done to avoid the problem of the fingers jumping from one position to another
+    # Hungarian algorithm
+    # To match the current finger positions with the previous ones
     P_prev = np.array([f1_rel_prev, f2_rel_prev, f3_rel_prev, f4_rel_prev, f5_rel_prev])
     P_new = np.array([f1, f2, f3, f4, f5])
     cost_matrix = cdist(P_prev, P_new) 
@@ -420,9 +449,9 @@ for i in range(min_length):
     f3_rel = P_new[col_ind[2]]
     f4_rel = P_new[col_ind[3]]
     f5_rel = P_new[col_ind[4]]
-
-
-    # Compute inverse kinematics for fingers
+    
+    
+    # Compute inverse kinematics
     little_position = [f1_rel[0], f1_rel[1], f1_rel[2]]
     ring_position = [f5_rel[0], f5_rel[1], f5_rel[2]]
     middle_position = [f4_rel[0], f4_rel[1], f4_rel[2]]
@@ -435,6 +464,9 @@ for i in range(min_length):
     thumb_solution = thumb_chain.inverse_kinematics(thumb_position)
 
 
+   
+    
+    
     # Compute forward kinematics for all links to obtain the joint positions
     transformation_matrixes_little = little_chain.forward_kinematics(little_solution, full_kinematics=True)
     nodes_little = [tm[:3, 3] for tm in transformation_matrixes_little]  # Extract translation vectors
@@ -448,22 +480,28 @@ for i in range(min_length):
     nodes_thumb = [tm[:3, 3] for tm in transformation_matrixes_thumb]  # Extract translation vectors
     
     
-    # Compute angle of closure
-    angle_little = get_closure_angle(point_h3, nodes_little, np.array([point_h3[0] + 0.1, point_h3[1], point_h3[2]]))
-    angle_ring = get_closure_angle(point_h4, nodes_ring, np.array([0.16272325, 0.00817894, point_h4[2]]))
-    angle_middle = get_closure_angle(point_h5, nodes_middle, np.array([0.17139323, 0.06217872, point_h5[2]]))
-    angle_index = get_closure_angle(point_h6, nodes_index, np.array([0.12973476, 0.09361607, point_h6[2]]))
-    angle_thumb = get_closure_angle(point_h1, nodes_thumb, np.array([-0.03948546, 0.08916224, point_h1[2]]))
+    # Get angle of closures 
+    x_h1, y_h1, z_h1 = point_h1.get_data_3d()
+    x_h2, y_h2, z_h2 = point_h2.get_data_3d()
+    x_h3, y_h3, z_h3 = point_h3.get_data_3d()
+    x_h4, y_h4, z_h4= point_h4.get_data_3d()
+    x_h5, y_h5, z_h5 = point_h5.get_data_3d()
+    x_h6, y_h6, z_h6, = point_h6.get_data_3d()
 
 
-    # Here all the angles are normalized to express the sigma value of closure of the hand
+    angle_little = get_closure_angle_plot(point_h3, nodes_little, np.array([x_h3[0] + 0.1, y_h3[0], z_h3[0]]))
+    angle_ring = get_closure_angle_plot(point_h4, nodes_ring, np.array([0.16272325, 0.00817894, z_h4[0]]))
+    angle_middle = get_closure_angle(point_h5, nodes_middle, np.array([0.17139323, 0.06217872, z_h5[0]]))
+    angle_index = get_closure_angle(point_h6, nodes_index, np.array([0.12973476, 0.09361607, z_h6[0]]))
+    angle_thumb = get_closure_angle(point_h1, nodes_thumb, np.array([-0.03948546, 0.08916224, z_h1[0]]))
+
+    
+    # Update sigma matrix value for the current frame
     sigma_value = normalize_angle(angle_little, angle_ring, angle_middle, angle_index, angle_thumb)
-    # Every value is added n_of_times to the sigma list, to match the EMG data length
-    for i in range(n_of_times):                 
+    for i in range(n_of_times):  # Every value is added n_of_times to the sigma list
         sigma_motion.append(sigma_value)
 
-
-    # Update the previous position of the fingers
+    # Save the position of the hand for the next iteration
     f1_rel_prev = f1_rel
     f2_rel_prev = f2_rel
     f3_rel_prev = f3_rel
@@ -473,9 +511,9 @@ for i in range(min_length):
 
 
 
-########################################################################
+#########################################################################
 # Sigma matrix Motion - Compute the Sigma matrix for the Motion test data to define hand closure
-########################################################################
+#########################################################################
 
 # Ensure the sigma list has the same number of elements as the EMG data
 sigma_len = len(sigma_motion)
@@ -486,12 +524,10 @@ if sigma_len < timestamps_emg_test:
 if sigma_len > timestamps_emg_test:
     sigma_motion = sigma_motion[:timestamps_emg_test]
 
-# Reaassign after modifications
-sigma_mot_len = len(sigma_motion)
+sigma_len_final = len(sigma_motion)
 
-
-print(f" - Sigma Motion samples: {sigma_len}")
-print(f" - EMG data samples: {timestamps_emg_test}\n")
+print(len(sigma_motion), "Sigma Motion values generated")
+print(timestamps_emg_test, "Samples in EMG data")
 
 
 
@@ -501,21 +537,19 @@ print(f" - EMG data samples: {timestamps_emg_test}\n")
 #########################################################################
 
 # Insights into both sigma matrices
-print("\nInsights into sigma motion matrix wrt to sigma synergy matrix")
-print(f"Samples in Motion Sigma matrix: {sigma_mot_len}")
-print(f"Samples in EMG Sigma matrix: {timestamps_emg_test}\n")
+print(f"Samples in Motion Sigma matrix: {sigma_len_final}")
+print(f"Samples in EMG Sigma matrix: {timestamps_emg_test}")
 
-# Ensure both signals are numpy arrays and translate sigma_motion for matching [0,1] range
+# Ensure both signals are numpy arrays
 sigma_emg = np.array(sigma_emg)
-
 sigma_motion = np.array(sigma_motion)
-sigma_motion -= np.min(sigma_motion)
-sigma_motion = np.clip(sigma_motion, 0, 1)
 
 # Compute the error between the two sigma matrices
 sigma_error = np.abs(sigma_motion - sigma_emg)
 
 # Comparison plot (transpose for plotting compatibility)
 plot_sigma_matrices(sigma_motion.T, sigma_emg.T, sigma_error.T)
+
+
 
 

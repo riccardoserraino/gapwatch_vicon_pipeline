@@ -5,7 +5,6 @@ from config import *
 ###########################################################################################################
 
 #-------------------------------------------------------------------------------------------
-# Function to scale the synergy activation matrix to the original EMG amplitude range (for plotting purposes)
 def scale_synergy_signal(X, emg_data):
     """
     Normalize synergy activation matrix to the amplitude range of the original EMG.
@@ -18,7 +17,7 @@ def scale_synergy_signal(X, emg_data):
         emg_data (ndarray): Original EMG signals (n_samples x n_channels).
 
     Returns:
-        ndarray: Scaled activation matrix (same shape as X).
+        X_scaled: Scaled activation matrix (same shape as X).
     """
     
     emg_min = np.min(emg_data)
@@ -37,21 +36,17 @@ def plot_emg(emg_data, title=''):
 
     Args:
         emg_data (ndarray): 2D array of EMG data with shape (n_channels, n_samples).
-
-    Returns:
-        None. Displays a matplotlib figure.
     """
 
-    plt.figure(figsize=(8, 6))
-    plt.suptitle(title, fontsize=10)
+    plt.figure(figsize=(8, 3))
  
     for j in range(emg_data.shape[0]):
         x = np.linspace(0, emg_data.shape[1] , emg_data.shape[1])
         plt.plot(x, emg_data[j], label='Channel {}'.format(j))
-    plt.title("EMG signal overview")
+    plt.title(title)
     plt.xlabel("Time (samples)")
     plt.ylabel("Amplitude (mV)")
-    plt.legend(loc='best', fontsize='small', markerscale=1)
+    plt.tight_layout()
     plt.show()
 
 
@@ -62,9 +57,6 @@ def plot_emg_channels_2cols(emg_data, title=''):
 
     Args:
         emg_data (ndarray): 2D array of EMG data with shape (n_emg_channels, n_samples).
-
-    Returns:
-        None. Displays a matplotlib figure with subplots for each channel.
     """
 
     n_channels, n_samples = emg_data.shape
@@ -82,7 +74,7 @@ def plot_emg_channels_2cols(emg_data, title=''):
         if row == 7:
             ax.set_ylabel("Amplitude (mV)")
             ax.set_xlabel("Time (samples)")
-    fig.suptitle(title, fontsize=10)
+    fig.suptitle(title)
     plt.tight_layout()
     plt.show()
 
@@ -95,9 +87,6 @@ def plot_raw_vs_filtered_channels_2cols(raw_emg, filtered_emg, title=''):
     Args:
         raw_emg (ndarray): Raw EMG data, shape (n_channels, n_samples)
         filtered_emg (ndarray): Filtered EMG data, same shape
-
-    Returns:
-        None. Displays matplotlib figure.
     """
 
     n_channels, n_samples = raw_emg.shape
@@ -120,7 +109,7 @@ def plot_raw_vs_filtered_channels_2cols(raw_emg, filtered_emg, title=''):
             ax.set_ylabel("Amplitude (mV)")
 
         ax.legend(fontsize=6)
-    fig.suptitle(title, fontsize=10)
+    fig.suptitle(title)
 
     plt.tight_layout()
     plt.show()
@@ -143,24 +132,18 @@ def plot_all_results(emg_data, E_reconstructed, W, H, selected_synergies, title=
         W (ndarray): Synergy activation matrix (n_samples x n_synergies).
         H (ndarray): Synergy weights matrix (n_synergies x n_emg_channel).
         selected_synergies (int): Number of synergies used in the model.
-
-    Returns:
-        None. Displays a matplotlib figure with 4 subplots.
     """
     
-    print(f'\nPlotting results...\n\n')
-
     W_scaled = scale_synergy_signal(W, emg_data)
 
     channels = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]  # Assuming 16 EMG channels, adjust as needed
 
     plt.figure(figsize=(8, 8))
-    plt.suptitle(title, fontsize=14)
 
     # Panel 1: Original EMG Signals
     plt.subplot(4, 1, 1)
     plt.plot(emg_data)
-    plt.title('Original EMG Signals')
+    plt.title(title)
     plt.ylabel('Amplitude (mV)')
     plt.xlabel('Time (samples)')
     plt.xticks()
@@ -178,7 +161,7 @@ def plot_all_results(emg_data, E_reconstructed, W, H, selected_synergies, title=
     # Panel 3: Synergy Activation Patterns over time
     plt.subplot(4, 1, 3)
     for i in range(selected_synergies):
-        plt.plot(W[:, i], 'o-', label=f'Synergy {i+1}')
+        plt.plot(W_scaled[:, i], 'o-', label=f'Synergy {i+1}')
     plt.title('Synergy Weighting Patterns')
     plt.xlabel('EMG Channel')
     plt.ylabel('Weight')
@@ -201,7 +184,63 @@ def plot_all_results(emg_data, E_reconstructed, W, H, selected_synergies, title=
 
 
 #-------------------------------------------------------------------------------------------
-# Sigma matrices comparison
+def plot_nmf(emg_data,  W, H, selected_synergies, title=''):
+    """
+    Plot a comprehensive overview of EMG signal decomposition using synergies.
+
+    This function generates four stacked subplots:
+    1. Original EMG signals.
+    2. Time-varying activation of each synergy.
+    3. Synergy-to-muscle weight distributions.
+
+    Args:
+        emg_data (ndarray): Raw EMG data (n_samples x n_muscles).
+        W (ndarray): Synergy activation matrix (n_samples x n_synergies).
+        H (ndarray): Synergy weights matrix (n_synergies x n_emg_channel).
+        selected_synergies (int): Number of synergies used in the model.
+    """
+    W_scaled = scale_synergy_signal(W, emg_data)
+
+    channels = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]  # Assuming 16 EMG channels, adjust as needed
+
+    plt.figure(figsize=(8, 6))
+
+    # Panel 1: Original EMG Signals
+    plt.subplot(3, 1, 1)
+    plt.plot(emg_data)
+    plt.title('EMG Filtered Signal (E)')
+    plt.ylabel('Amplitude (mV)')
+    plt.xlabel('Time (samples)')
+    plt.xticks()
+
+    
+    # Panel 2: Synergy Activation Patterns over time
+    plt.subplot(3, 1, 2)
+    for i in range(selected_synergies):
+        plt.plot(W[:, i], 'o-', label=f'Synergy {i+1}')
+    plt.title('Synergy Weighting Patterns (W)')
+    plt.xlabel('EMG Channel')
+    plt.ylabel('Weight')
+    plt.legend(loc='upper right', ncol=selected_synergies)
+    plt.xticks(channels)  
+
+    
+    # Panel 3: Synergy Weighting Patterns
+    plt.subplot(3, 1, 3)
+    for i in range(selected_synergies):
+        plt.plot(H[i, :],  label=f'Synergy {i+1}')
+    plt.title('Synergy Activation Over Time (H)')
+    plt.ylabel('Amplitude (mV)')
+    plt.xlabel('Time (samples)')
+    plt.legend(loc='upper right', ncol=selected_synergies)
+    plt.xticks()
+    
+    plt.tight_layout()
+    plt.show()
+
+
+
+#-------------------------------------------------------------------------------------------
 def plot_sigma_matrices(sigma_motion, sigma_emg, sigma_error):
     """
     Plots sigma matrices comparison.
@@ -210,13 +249,13 @@ def plot_sigma_matrices(sigma_motion, sigma_emg, sigma_error):
         - sigma_motion: matrix defining hand closure obtained from vicon data.
         - sigma_emg: matrix defining hand closure obtained from gapwatch data.
         - sigma_error: matrix defining error between the two input matrices.
-
     """
-    plt.figure(figsize=(10, 6))
+    
+    plt.figure(figsize=(8, 6))
 
     # Plot Sigma EMG
     plt.subplot(3, 1, 1)
-    plt.plot(sigma_motion, label='Sigma EMG (GapWatch)', color='blue')
+    plt.plot(sigma_motion, label='Sigma Motion (Vicon)', color='b')
     plt.ylabel('Sigma EMG')
     plt.ylim(0, 1.1)
     plt.title('Synergy-based Hand Closure Estimation (GapWatch)')
@@ -224,15 +263,15 @@ def plot_sigma_matrices(sigma_motion, sigma_emg, sigma_error):
 
     # Plot Sigma Motion
     plt.subplot(3, 1, 2)
-    plt.plot(sigma_emg, label='Sigma Motion (Vicon)', color='green')
+    plt.plot(sigma_emg, label='Sigma EMG (GapWatch)', color='g')
     plt.ylabel('Sigma Motion')
     plt.ylim(0, 1.1)
-    plt.title('Kinematics-based Hand Closure Estimation (Vicon)')
+    plt.title('Motion-based Hand Closure Estimation (Vicon)')
     plt.legend()
 
     # Plot Sigma Error
     plt.subplot(3, 1, 3)
-    plt.plot(sigma_error, label='Error |Sigma Motion - Sigma EMG|', color='red')
+    plt.plot(sigma_error, label='Error |Sigma Motion - Sigma EMG|', color='r')
     plt.xlabel('Time (samples)')
     plt.ylabel('Absolute Error')
     plt.ylim(0, 1.1)
@@ -245,13 +284,12 @@ def plot_sigma_matrices(sigma_motion, sigma_emg, sigma_error):
 
 #-------------------------------------------------------------------------------------------
 
-def plot_sigma_emg(scaled_matrix, title="Flexion-Extention Matrix"):
+def plot_sigma_emg(scaled_matrix, title="Flexion-Extention Matrix From EMG Analysis"):
     """
     Plots a 1 x N matrix showing values between 0 and 1.
     
     Parameters:
     - scaled_matrix: 1 x N numpy array
-    - title: optional title for the plot
     """
 
     scaled_matrix = np.array(scaled_matrix)
@@ -262,15 +300,40 @@ def plot_sigma_emg(scaled_matrix, title="Flexion-Extention Matrix"):
     values = scaled_matrix.flatten()
     x = np.arange(len(values))
 
-    plt.figure(figsize=(6, 4))
-    plt.plot(x, values, color='g')
+    plt.figure(figsize=(8, 2.5))
+    plt.plot(values, color='g')
     plt.ylim(0, 1.1)  # leave some space above 1
     plt.xlabel("Time (samples)")
+    plt.xticks()
     plt.ylabel("Flexion-Extention Value")
     plt.title(title)
 
     plt.tight_layout()
     plt.show()
+
+
+#-------------------------------------------------------------------------------------------
+def plot_sigma_motion(sigma_motion, title='Flexion-Extention Matrix from Motion Analysis'):
+    """
+    Plots a 1 x N matrix showing values between 0 and 1.
+
+    Parameters:
+    - scaled_matrix: 1 x N numpy array
+    """
+
+
+    plt.figure(figsize=(8, 2.5))
+    plt.plot(sigma_motion, color='b')
+    plt.ylim(0, 1.1)  # leave some space above 1
+    plt.xlabel("Time (samples)")
+    plt.ylabel("Flexion-Extention Value")
+    plt.xticks()
+    plt.title(title)
+
+    plt.tight_layout()
+    plt.show()
+
+
 
 
 #-------------------------------------------------------------------------------------------

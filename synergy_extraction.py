@@ -7,6 +7,8 @@ from utils.utils_synergies import *
 from utils.utils_visual import *
 
 
+
+
 ########################################################################
 # Initialization - Set ROS topic for Gapwatch and Vicon and set bagfile paths
 ########################################################################
@@ -20,7 +22,7 @@ base_path = {
 }
 
 train_dataset = "power_grasp1.bag"     # <-- Change here to use a different file
-test_dataset = "pinza9.bag"      # <-- Change here to use a different file
+test_dataset = "power_grasp2.bag"      # <-- Change here to use a different file
 
 
 
@@ -39,11 +41,13 @@ emg_data_train, timestamps_train = load_emg_data(bag_path_emg, emg_topic)
 
 # Data Reshaping 1 - Reshape raw EMG vector into (16 x N) matrix format
 final_emg_train, timestamps_emg_train, fs_emg_train = reshape_emg_data(emg_data_train, timestamps_train)
-#plot_emg(final_emg_train)
+aligned_emg_train = np.array(align_signal_baselines(final_emg_train, method='mean'))
+plot_emg(aligned_emg_train, title='Raw EMG Signals - Mean Value Aligned')
+
 
 # Data Filtering 2 - Filter EMG data with EMG filtering specs
 filtered_emg_train = np.array([preprocess_emg(final_emg_train[i, :], fs=fs_emg_train) for i in range(final_emg_train.shape[0])])
-#plot_emg(filtered_emg_train)
+plot_emg(filtered_emg_train, title='Filtered EMG Signals')
 
 
 #-----------------------------------------------------------------------
@@ -80,17 +84,15 @@ final_emg_for_nmf = filtered_emg_train.T
 
 W, H = nmf_emg(final_emg_for_nmf, 
                n_components=optimal_synergies_nmf,
-                init='nndsvd', 
-                max_iter=500, 
-                l1_ratio=0.15, 
-                alpha_W=0.0005, 
-                random_state=42)
+               init='nndsvd', 
+               max_iter=500, 
+               l1_ratio=0.15, 
+               alpha_W=0.0005, 
+               random_state=21)
 
-# Uncomment the following lines for consistency check purposes
-# To Reconstruct the EMG from extracted synergies
-# Plot original E, reconstructed, channel weights W, and activation over time H
+# Plot original E, channel weights W, and activation over time H
 reconstructed_nmf = nmf_emg_reconstruction(W, H, final_emg_for_nmf)
-#plot_all_results(final_emg_for_nmf, reconstructed_nmf, W, H, optimal_synergies_nmf, title='SNMF Synergy Extraction Check')
+plot_nmf(final_emg_for_nmf, W, H, optimal_synergies_nmf)
 
 
 # Print shapes of extracted matrices
@@ -98,7 +100,6 @@ print("Insights into extracted NMF matrices:")
 print(f" - Final EMG for NMF shape: {final_emg_for_nmf.shape}")   # Should be (n_samples, n_channels)
 print(f" - Extracted Synergy Matrix W shape: {W.shape}")          # Should be (n_channels, n_synergies)
 print(f" - Extracted Activation Matrix H shape: {H.shape}\n")     # Should be (n_synergies, n_samples)
-#print(f" - Reconstructed EMG shape: {reconstructed_nmf.shape}\n") # Should be (n_samples, n_channels) after doing the transpose for plotting purposes
 
 
 # Pseudo inverse of H matrix (neural matrix representing activation patterns)
@@ -122,9 +123,10 @@ print("\nReconstructing the EMG test data using estimated synergy matrix H...")
 H_train = H
 H_test = estimated_H
 reconstructed_t = nmf_emg_reconstruction(W, H_test, filtered_emg_test.T)
+print(f" - Reconstructed EMG shape: {reconstructed_nmf.shape}\n") # Should be (testdata_n_samples, n_channels) after doing the transpose for plotting purposes
 print("Reconstruction completed.\n")
 
-plot_all_results(filtered_emg_test.T, reconstructed_t, W, H_test, optimal_synergies_nmf, title='Reconstruction of Original Test Data with SNMF & Train Data Activation Weights')
+plot_all_results(filtered_emg_test.T, reconstructed_t, W, H_test, optimal_synergies_nmf, title='Reconstruction of Original Test Data with Train Data Synergies')
 
 
 
@@ -138,11 +140,11 @@ plot_all_results(filtered_emg_test.T, reconstructed_t, W, H_test, optimal_synerg
 highest_value, correspondent_value, max_difference = find_max_difference(H_train)
 
 sigma_emg = scale_differences(H_test, max_difference)
-print("\nInsights into the flexion/extention synergy matrix O:")
+print("\nInsights into the flexion/extention synergy matrix:")
 print(f" - Highest value in H_train row: {highest_value}")
 print(f" - Corresponding value in H_train row+1: {correspondent_value}")
 print(f" - Maximum difference in H_train: {max_difference}")
-print(f" - Flexion/Extension synergy matrix O shape: {sigma_emg.shape}\n")
+print(f" - Flexion/Extension synergy matrix shape: {sigma_emg.shape}\n")
 
-plot_sigma_emg(sigma_emg, title='Flexion/Extension Sigma Matrix EMG')
+plot_sigma_emg(sigma_emg, title='Sigma Matrix EMG')
 

@@ -1,3 +1,5 @@
+# Hand model with no joints in the finger model and no inverse kinematics
+
 from config import *
 
 # Utils functions
@@ -68,10 +70,10 @@ print("Number of times to repeat vicon data:", n_of_times)
 
 
 ########################################################################
-# Vicon Data Processing - Extract hand and finger positions, calculate 
-#                         angles of closure, get sigma matrix values
+# Vicon Data Processing - Extract Hand and Finger pPositions
+#                       - Calculate Angles of Closure
+#                       - Compute the Sigma matrix for the Motion test data to define hand closure
 ########################################################################
-# Hand model generation and animation
 
 #-----------------------------------------------------------------------
 # Initialization of the useful parameters for plotting and analysis
@@ -92,7 +94,7 @@ ax.set_zlim(-0.2, 0.2)
 
 
 #--------------------------------------------------------------------------
-# Hand model initialization
+# Hand model initializations
 #--------------------------------------------------------------------------
 # The hand model is defined by a set of points and lines that represent the structure of the hand and fingers.
 
