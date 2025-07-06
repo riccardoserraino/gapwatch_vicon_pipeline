@@ -7,6 +7,7 @@ import numpy as np
 import rosbag
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import LogLocator
 
 import time
 import math
@@ -15,7 +16,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
 # EMG----------------------------------------------
-from scipy.signal import butter, filtfilt, iirnotch
+from scipy.signal import butter, filtfilt, iirnotch, freqz
 from sklearn.decomposition import NMF
 from sklearn.decomposition import PCA
 

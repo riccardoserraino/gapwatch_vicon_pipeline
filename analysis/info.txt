@@ -1,0 +1,2 @@
+This folder contains all the code needed to mathematically explain the main concepts used 
+such as the filters for emg filtering, data analysis, kinematics based analysis
