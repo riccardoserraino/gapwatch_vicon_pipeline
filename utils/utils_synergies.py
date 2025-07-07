@@ -199,7 +199,7 @@ def scale_synergy_signal(X, emg_data):
 
 # Band-pass 20-500Hz, Notch 50Hz
 # 1. Bandpass filter design
-def butter_bandpass(signal, fs, lowcut=20, highcut=500, order=5):
+def butter_bandpass(signal, fs, lowcut=20, highcut=500, order=4):
     """Applies a Butterworth bandpass filter to the signal."""
     nyq = 0.5 * fs
     low = lowcut / nyq
@@ -218,7 +218,7 @@ def notch_filter(signal, fs, n_freq=50.0, Q=30.0):
     return filtered_n
 
 # 3. RMS in 200 ms Windows 
-def compute_rms(signal, window_size=500):
+def compute_rms(signal, window_size=200):
     """Computes the RMS of the signal using a moving window."""
     # RMS over sliding windows
     squared = np.power(signal, 2)

@@ -27,3 +27,5 @@ from scipy.optimize import linear_sum_assignment, linear_sum_assignment
 from scipy.spatial.distance import cdist
 from ikpy.chain import Chain
 from ikpy.link import URDFLink
+# ikpy library has been directly downloaded and slightly modified for our personal purposes, 
+# can be found in the folders, optimization may be needed to avoid this process
