@@ -188,7 +188,7 @@ selected_paths = select_datasets(dataset_options_emg)
 ########################################################################
 
 #-----------------------------------------------------------------------
-# Load EMG train data from a test bag file 
+# Load EMG train data from a train bag file 
 #-----------------------------------------------------------------------
 
 bag_path_emg = base_path['bag_emg'] + train_dataset     
