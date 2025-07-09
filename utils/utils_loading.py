@@ -157,4 +157,21 @@ def load_vicon_data(file_path, topic_hand='/tf', topic_marker='/vicon/unlabeled_
     return hand_positions, hand_orientations, marker_positions, timestamps
 
 
+
 #----------------------------------------------------------------------------------------------------------
+def load_combined_emg_data(selected_paths, topic_name):
+    # Initialize empty lists to hold individual arrays from each file
+    emg_data_individual_files = []
+    timestamps_individual_files = []
+
+    for bag_path in selected_paths:
+        # Load EMG data and timestamps for each file
+        emg_data, timestamps = load_emg_data(bag_path, topic_name)
+
+        # Append data to the lists (do NOT concatenate yet)
+        emg_data_individual_files.append(emg_data)
+        timestamps_individual_files.append(timestamps)
+
+    # Return lists of individual arrays
+    return emg_data_individual_files, timestamps_individual_files
+

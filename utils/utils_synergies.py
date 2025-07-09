@@ -2,98 +2,6 @@ from config import *
 
 
 ####################################################################################################
-# Synergies extraction and reconstruction fucntions
-####################################################################################################
-
-
-
-####################################################################################################
-# PCA
-####################################################################################################
-
-def pca_emg(emg_data, n_components, scale_W=False, random_state=None, svd_solver='full'):
-    """
-    Applies Principal Component Analysis (PCA) to EMG data for dimensionality reduction 
-    and synergy extraction.
-
-    Args:
-        emg_data (ndarray): Input EMG data matrix of shape (n_samples, n_muscles).
-        n_components (int): Number of principal components (synergies) to extract.
-        scale_W (bool): If True, scale scores (U) by the explained variance ratio.
-        random_state (int or None): Random seed for reproducibility.
-        svd_solver (str): SVD solver to use. Default is 'full' (LAPACK-based).
-
-    Returns:
-        H (ndarray): Principal components (muscle synergies), shape (n_components, n_muscles).
-        W (ndarray): Projection of data onto components (temporal activations), shape (n_samples, n_components).
-        mean (ndarray): Mean of the original data used for reconstruction.
-        X_reconstructed (ndarray): Reconstructed EMG data using the selected principal components.
-    """
-
-    print("\nApplying PCA...")
-
-    #preprocessing data for a clear reconstruction (centering and normalization)
-    X_centered = emg_data - np.mean(emg_data, axis=0)
-    X_normalized = (emg_data - np.mean(emg_data, axis=0)) / np.std(emg_data, axis=0)
-
-    #model pca
-    pca = PCA(n_components=n_components, svd_solver=svd_solver, random_state=random_state)
-    
-    #extracting matrices
-    W = pca.fit_transform(emg_data)             # Synergies over time
-    H = pca.components_                         # Muscle patterns (Muscular synergy matrix)
-    mean = pca.mean_
-    
-    # Scale scores by explained variance (makes them more comparable)
-    if scale_W:
-        W = W * np.sqrt(pca.explained_variance_ratio_)
-    # Transpose to keep same structure as NMF function
-    if H.shape[0] != n_components:
-        H = H.T     # Ensure S_m has shape (n_synergies, n_muscles)
-    
-    #reconstruction based on the inverse transform
-    X_transformed = pca.fit_transform(X_centered) # Neural matrix (synergies over time) adjusted for centering wrt original data and enforce positive values
-    X_reconstructed = pca.inverse_transform(X_transformed) + np.mean(emg_data, axis=0) # the mean is added to enforce values of synergies and reconstruction being non negative as the original data
-
-    """mse = np.mean((emg_data - X_reconstructed) ** 2)
-    print(f"Reconstruction MSE: {mse}")"""
-
-    print("PCA completed.\n")
-
-    return H, W, mean, X_reconstructed
-
-
-#---------------------------------------------------------------------------------------------
-def pca_emg_reconstruction(W, H, mean, n_synergies):
-    """
-    Reconstructs EMG data using a selected number of PCA components.
-
-    Args:
-        W (ndarray): Scores matrix (temporal activations), shape (n_samples, total_components).
-        H (ndarray): Principal components (muscle synergies), shape (total_components, n_muscles).
-        mean (ndarray): Mean vector used for centering during PCA.
-        n_synergies (int): Number of components to use for reconstruction.
-
-    Returns:
-        reconstructed (ndarray): Reconstructed EMG data matrix, shape (n_samples, n_muscles).
-    """
-
-    print(f"\nReconstructing the signal with {n_synergies} synergies...")
-    
-    # Select the first n_components
-    W_rec = W[:, :n_synergies]
-    H_rec = H[:n_synergies, :]
-    
-    # Reconstruct the data
-    reconstructed = np.dot(W_rec, H_rec) + mean
-
-    print("Reconstruction completed.\n")
-
-    return reconstructed
-
-
-
-####################################################################################################
 # NMF functions
 ####################################################################################################
 
@@ -213,7 +121,7 @@ def notch_filter(signal, fs, n_freq=50.0, Q=30.0):
     """Applies a notch filter to remove powerline interference."""
     nyq = 0.5 * fs
     w0 = n_freq / nyq  
-    b, a = iirnotch(w0, Q)
+    b, a = iirnotch(w0, Q, fs)
     filtered_n = filtfilt(b, a, signal)
     return filtered_n
 
@@ -223,6 +131,9 @@ def compute_rms(signal, window_size=200):
     # RMS over sliding windows
     squared = np.power(signal, 2)
     window = np.ones(window_size)/window_size
+    # Ensure squared and window are 1D
+    squared = squared.flatten()
+    window = window.flatten()
     rms = np.sqrt(np.convolve(squared, window, mode='same'))
     return rms
 
@@ -233,6 +144,11 @@ def preprocess_emg(emg_signal, fs):
     rms_signal = compute_rms(notch_removed)
     return rms_signal
 
+def preprocess_emg_combined(emg_signal, fs):
+    bandpassed = butter_bandpass(emg_signal, fs)
+    notch_removed = notch_filter(bandpassed, fs)
+    rms_signal = compute_rms(notch_removed)
+    return bandpassed, notch_removed, rms_signal
 
 #-------------------------------------------------------------------------------------------
 # Function to compute the Moore–Penrose pseudo-inverse of a matrix

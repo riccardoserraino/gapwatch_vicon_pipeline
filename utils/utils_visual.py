@@ -43,7 +43,7 @@ def plot_emg(emg_data, title=''):
     for j in range(emg_data.shape[0]):
         x = np.linspace(0, emg_data.shape[1] , emg_data.shape[1])
         plt.plot(x, emg_data[j], label='Channel {}'.format(j))
-    plt.title(title)
+    #plt.title(title)
     plt.xlabel("Time (samples)")
     plt.ylabel("Amplitude (mV)")
     plt.tight_layout()
@@ -74,7 +74,7 @@ def plot_emg_channels_2cols(emg_data, title=''):
         if row == 7:
             ax.set_ylabel("Amplitude (mV)")
             ax.set_xlabel("Time (samples)")
-    fig.suptitle(title)
+    #fig.suptitle(title)
     plt.tight_layout()
     plt.show()
 
@@ -109,7 +109,7 @@ def plot_raw_vs_filtered_channels_2cols(raw_emg, filtered_emg, title=''):
             ax.set_ylabel("Amplitude (mV)")
 
         ax.legend(fontsize=6)
-    fig.suptitle(title)
+    #fig.suptitle(title)
 
     plt.tight_layout()
     plt.show()
@@ -143,7 +143,7 @@ def plot_all_results(emg_data, E_reconstructed, W, H, selected_synergies, title=
     # Panel 1: Original EMG Signals
     plt.subplot(4, 1, 1)
     plt.plot(emg_data)
-    plt.title(title)
+    plt.title(f'Original Test Data')
     plt.ylabel('Amplitude (mV)')
     plt.xlabel('Time (samples)')
     plt.xticks()
@@ -218,7 +218,7 @@ def plot_nmf(emg_data,  W, H, selected_synergies, title=''):
     plt.subplot(3, 1, 2)
     for i in range(selected_synergies):
         plt.plot(W[:, i], 'o-', label=f'Synergy {i+1}')
-    plt.title('Synergy Weighting Patterns (W)')
+    plt.title('Synergy Weighting Patterns (S)')
     plt.xlabel('EMG Channel')
     plt.ylabel('Weight')
     plt.legend(loc='upper right', ncol=selected_synergies)
@@ -229,7 +229,7 @@ def plot_nmf(emg_data,  W, H, selected_synergies, title=''):
     plt.subplot(3, 1, 3)
     for i in range(selected_synergies):
         plt.plot(H[i, :],  label=f'Synergy {i+1}')
-    plt.title('Synergy Activation Over Time (H)')
+    plt.title('Synergy Activation Over Time (U)')
     plt.ylabel('Amplitude (mV)')
     plt.xlabel('Time (samples)')
     plt.legend(loc='upper right', ncol=selected_synergies)
@@ -306,7 +306,7 @@ def plot_sigma_emg(scaled_matrix, title="Flexion-Extention Matrix From EMG Analy
     plt.xlabel("Time (samples)")
     plt.xticks()
     plt.ylabel("Flexion-Extention Value")
-    plt.title(title)
+    #plt.title(title)
 
     plt.tight_layout()
     plt.show()
@@ -328,7 +328,7 @@ def plot_sigma_motion(sigma_motion, title='Flexion-Extention Matrix from Motion 
     plt.xlabel("Time (samples)")
     plt.ylabel("Flexion-Extention Value")
     plt.xticks()
-    plt.title(title)
+    #plt.title(title)
 
     plt.tight_layout()
     plt.show()
@@ -337,3 +337,44 @@ def plot_sigma_motion(sigma_motion, title='Flexion-Extention Matrix from Motion 
 
 
 #-------------------------------------------------------------------------------------------
+def plot_signals(original, bandpassed, notch_removed, rms_signal, fs, channel_number):
+    time = np.linspace(0, len(original) / fs, len(original))
+    
+    plt.figure(figsize=(8, 6))
+
+    plt.subplot(4, 1, 1)
+    plt.plot(time, original, label=f'Channel {channel_number}')
+    plt.title('Original EMG Signal')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude')
+    plt.legend()
+
+    plt.subplot(4, 1, 2)
+    plt.plot(time, bandpassed, label=f'Channel {channel_number}')
+    plt.title('Bandpassed EMG Signal')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude')
+    plt.legend()
+
+    plt.subplot(4, 1, 3)
+    plt.plot(time, notch_removed, label=f'Channel {channel_number}')
+    plt.title('Notch Filtered EMG Signal')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude')
+    plt.legend()
+
+    plt.subplot(4, 1, 4)
+    plt.plot(time, rms_signal, label=f'Channel {channel_number}')
+    plt.title('RMS of Notch Filtered Signal')
+    plt.xlabel('Time (s)')
+    plt.ylabel('RMS Amplitude')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+

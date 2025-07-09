@@ -1,5 +1,6 @@
 from config import *
 
+
 def plot_reference_frame(ax, origin, rotation_matrix, scale=1.0, label=''):
     """
     Plots a 3D reference frame (origin and axes).
@@ -9,21 +10,22 @@ def plot_reference_frame(ax, origin, rotation_matrix, scale=1.0, label=''):
         origin (np.array): 3D coordinates of the frame's origin.
         rotation_matrix (np.array): 3x3 rotation matrix for the frame's orientation.
         scale (float): Length of the axes.
-        label (str): Label for the frame.
+        label (str): Label for the frame, used for text annotations on axes.
+                     This function will NOT add labels to the legend for its components.
     """
     x_axis = rotation_matrix @ np.array([scale, 0, 0])
     y_axis = rotation_matrix @ np.array([0, scale, 0])
     z_axis = rotation_matrix @ np.array([0, 0, scale])
 
-    # Plot origin
-    ax.scatter(*origin, color='k', marker='o', s=50, label=f'{label} Origin' if label else '')
+    # Plot origin - removed label argument to prevent it from appearing in legend
+    ax.scatter(*origin, color='k', marker='o', s=50)
 
-    # Plot axes
-    ax.quiver(*origin, *x_axis, color='r', length=1, arrow_length_ratio=0.1, label=f'{label} X-axis' if label else '')
-    ax.quiver(*origin, *y_axis, color='g', length=1, arrow_length_ratio=0.1, label=f'{label} Y-axis' if label else '')
-    ax.quiver(*origin, *z_axis, color='b', length=1, arrow_length_ratio=0.1, label=f'{label} Z-axis' if label else '')
+    # Plot axes - removed label arguments to prevent them from appearing in legend
+    ax.quiver(*origin, *x_axis, color='r', length=1, arrow_length_ratio=0.1)
+    ax.quiver(*origin, *y_axis, color='g', length=1, arrow_length_ratio=0.1)
+    ax.quiver(*origin, *z_axis, color='b', length=1, arrow_length_ratio=0.1)
 
-    # Add text labels for axes
+    # Add text labels for axes (these are NOT legend entries, so they are fine)
     ax.text(*(origin + x_axis * 1.1), f'{label}X', color='r')
     ax.text(*(origin + y_axis * 1.1), f'{label}Y', color='g')
     ax.text(*(origin + z_axis * 1.1), f'{label}Z', color='b')
@@ -62,7 +64,7 @@ ax = fig.add_subplot(111, projection='3d')
 ax.set_xlabel('X-axis')
 ax.set_ylabel('Y-axis')
 ax.set_zlabel('Z-axis')
-ax.set_title('Vicon-World Reference Frame with Hand Frame and Fingertip Markers')
+#ax.set_title('Vicon-World Reference Frame with Hand Frame and Fingertip Markers')
 ax.set_aspect('equal', adjustable='box') # Ensures proper aspect ratio
 
 # Set limits for better visualization
@@ -102,10 +104,10 @@ ax.plot([world_origin[0], hand_origin[0]],
 # These points are relative to the hand's origin (0,0,0) in its OWN coordinate system
 fingertip_local_positions = np.array([
     [0.13, -0.12, 0.3],   # Thumb (slightly different X/Y)
-    [0.05, -0.15, 0.4], # Index finger
-    [0.0, -0.16, 0.42], # Middle finger
-    [-0.05, -0.15, 0.4],# Ring finger
-    [-0.1, -0.12, 0.35] # Pinky finger
+    [0.05, -0.15, 0.4],  # Index finger
+    [0.0, -0.16, 0.42],  # Middle finger
+    [-0.05, -0.15, 0.4], # Ring finger
+    [-0.1, -0.12, 0.35]  # Pinky finger
 ])
 # Scale these positions to be reasonable relative to the hand frame's size
 fingertip_local_positions *= -1.0 # Scale for visualization purposes
@@ -121,14 +123,17 @@ for local_pos in fingertip_local_positions:
 
 fingertip_world_positions = np.array(fingertip_world_positions)
 
-# Plot the markers
+# Plot the markers with the desired label for the legend
 ax.scatter(fingertip_world_positions[:, 0],
            fingertip_world_positions[:, 1],
            fingertip_world_positions[:, 2],
-           color='m',  # Magenta color for markers
-           marker='o', # Circle marker
-           s=10,      # Size of the markers
-           label='Fingertip Markers')
+           color='m',    # Magenta color for markers
+           marker='o',   # Circle marker
+           s=10,         # Size of the markers
+           label='Fingertip Markers') # This label will appear in the legend
+
+# Display the legend
+ax.legend()
 
 plt.grid(True)
 plt.show()
