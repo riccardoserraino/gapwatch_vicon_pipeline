@@ -236,12 +236,12 @@ W, H = nmf_emg(final_emg_for_nmf,
                n_components=optimal_synergies_nmf,
                init='nndsvd', 
                max_iter=500, 
-               l1_ratio=0.15, 
-               alpha_W=0.0005, 
+               l1_ratio=0.2, 
+               alpha_W=0.0008, 
                random_state=21)
 
 # Plot original E, channel weights W, and activation over time H
-plot_nmf(final_emg_for_nmf, W, H, optimal_synergies_nmf)
+#plot_nmf(final_emg_for_nmf, W, H, optimal_synergies_nmf)
 
 
 # Print shapes of extracted matrices
@@ -275,7 +275,7 @@ reconstructed_t = nmf_emg_reconstruction(W, H_test, final_emg_data_test_combined
 print(f" - Reconstructed EMG shape: {reconstructed_t.shape}\n") # Should be (testdata_n_samples, n_channels) after doing the transpose for plotting purposes
 print("Reconstruction completed.\n")
 
-plot_all_results(final_emg_data_test_combined.T, reconstructed_t, W, H_test, optimal_synergies_nmf)
+#plot_all_results(final_emg_data_test_combined.T, reconstructed_t, W, H_test, optimal_synergies_nmf)
 
 
 
@@ -295,12 +295,12 @@ print(f" - Corresponding value in H_train row+1: {correspondent_value}")
 print(f" - Maximum difference in H_train: {max_difference}")
 print(f" - Flexion/Extension synergy matrix shape: {sigma_emg.shape}\n")
 
-plot_sigma_emg(sigma_emg, title='Sigma Matrix EMG')
+#plot_sigma_emg(sigma_emg, title='Sigma Matrix EMG')
 
 
 
 
-
+plot_test_results(final_emg_data_test_combined.T, sigma_emg.T, H_test, optimal_synergies_nmf)
 
 
 

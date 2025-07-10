@@ -218,9 +218,13 @@ pos_f2_final_combined =   []
 pos_f3_final_combined =   []
 pos_f4_final_combined =   []
 pos_f5_final_combined =   []
-final_emg_data_test_combined, final_timestamps_test_combined, fs_test_combined, pos_hand_final_combined, rot_hand_final_combined, pos_f1_final_combined, pos_f2_final_combined, pos_f3_final_combined, pos_f4_final_combined, pos_f5_final_combined = load_combined_reshape_vicon(selected_paths, emg_topic)
-print("SHAPE: ", pos_hand_final_combined.shape)
-print("SCIAMN: ", pos_hand_final_combined[:,1])
+
+len_emg_datasets = []
+len_vicon_datasets = []
+
+
+final_emg_data_test_combined, final_timestamps_test_combined, fs_test_combined, pos_hand_final_combined, rot_hand_final_combined, pos_f1_final_combined, pos_f2_final_combined, pos_f3_final_combined, pos_f4_final_combined, pos_f5_final_combined, len_emg_datasets, len_vicon_datasets = load_combined_reshape_vicon(selected_paths, emg_topic)
+
 
 
 ########################################################################
@@ -242,9 +246,9 @@ W, H = nmf_emg(final_emg_for_nmf,
                n_components=optimal_synergies_nmf,
                 init='nndsvd', 
                 max_iter=500, 
-                l1_ratio=0.15, 
-                alpha_W=0.005, 
-                random_state=42)
+                l1_ratio=0.2, 
+                alpha_W=0.0008, 
+                random_state=21)
 
 # Print shapes of extracted matrices
 print("Insights into extracted NMF matrices:")
@@ -508,19 +512,19 @@ thumb_chain = Chain(name='thumb', links=[
 #--------------------------------------------------------------------------
 # Animation loop
 #--------------------------------------------------------------------------
-for i in range(pos_hand_final_combined.shape[1]):
+for i in range(len(pos_hand_final_combined)):
 
     # Loading of the current position of the hand and fingers wrt the world frame
-    x1, y1, z1 = pos_hand_final_combined[:,i]
-    x_f1, y_f1, z_f1 = pos_f1_final_combined[:,i]
-    x_f2, y_f2, z_f2 = pos_f2_final_combined[:,i]
-    x_f3, y_f3, z_f3 = pos_f3_final_combined[:,i]
-    x_f4, y_f4, z_f4 = pos_f4_final_combined[:,i]
-    x_f5, y_f5, z_f5 = pos_f5_final_combined[:,i]
+    x1, y1, z1 = pos_hand_final_combined[i]
+    x_f1, y_f1, z_f1 = pos_f1_final_combined[i]
+    x_f2, y_f2, z_f2 = pos_f2_final_combined[i]
+    x_f3, y_f3, z_f3 = pos_f3_final_combined[i]
+    x_f4, y_f4, z_f4 = pos_f4_final_combined[i]
+    x_f5, y_f5, z_f5 = pos_f5_final_combined[i]
 
 
     # Rotation matrix calculation to pass from the world frame to the hand frame
-    rotation_matrix = from_q_to_rotation(rot_hand_final_combined[:,i])
+    rotation_matrix = from_q_to_rotation(rot_hand_final_combined[i])
     if(rotation_matrix == m_nulla).all():
         continue
     
@@ -598,10 +602,23 @@ for i in range(pos_hand_final_combined.shape[1]):
 
 
 
+final_sigma_motion = []
+last_position = 0
+counter = 0
+for i in len_vicon_datasets:
+    n_of_times = round(len_emg_datasets[counter]/i)
+    for k in range(i):
+        for j in range(n_of_times):
+            final_sigma_motion.append(sigma_motion[last_position + k])
+    last_position += k
+    if ((k+1)*(j+1) < len_emg_datasets[counter]):
+        for l in range(len_emg_datasets[counter] - (k+1)*(j+1)):
+            final_sigma_motion.append(final_sigma_motion[-1])
+    if ((k+1)*(j+1) > len_vicon_datasets[counter]):
+        for m in range((k+1)*(j+1) - len_emg_datasets[counter]):
+            final_sigma_motion = final_sigma_motion[:-1]
+    counter += 1
 
-########################################################################
-# Sigma matrix Motion - Compute the Sigma matrix for the Motion test data to define hand closure
-########################################################################
 
 
 #########################################################################
@@ -610,7 +627,7 @@ for i in range(pos_hand_final_combined.shape[1]):
 
 # Insights into both sigma matrices
 print("\nInsights into sigma motion matrix wrt to sigma synergy matrix")
-print(f"Samples in Motion Sigma matrix: {len(sigma_motion)}")
+print(f"Samples in Motion Sigma matrix: {len(final_sigma_motion)}")
 print(f"Samples in EMG Sigma matrix: {final_timestamps_test_combined}\n")
 
 # Ensure both signals are numpy arrays and translate sigma_motion for matching [0,1] range
@@ -619,7 +636,7 @@ sigma_emg = np.array(sigma_emg)
 sigma_motion = np.array(sigma_motion)
 
 # Compute the error between the two sigma matrices
-sigma_error = np.abs(sigma_motion - sigma_emg)
+sigma_error = np.abs(final_sigma_motion - sigma_emg)
 
 # Comparison plot (transpose for plotting compatibility)
 plot_sigma_matrices(sigma_motion.T, sigma_emg.T, sigma_error.T)

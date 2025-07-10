@@ -22,7 +22,7 @@ base_path = {
 }
 
 # Select the dataset you want to work on for testing 
-test_dataset = "power_grasp1.bag"      # <-- Change here to use a different file
+test_dataset = "thumb_up1.bag"      # <-- Change here to use a different file
 
 
 

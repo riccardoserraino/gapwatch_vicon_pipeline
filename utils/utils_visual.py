@@ -251,22 +251,24 @@ def plot_sigma_matrices(sigma_motion, sigma_emg, sigma_error):
         - sigma_error: matrix defining error between the two input matrices.
     """
     
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(10, 8))
 
-    # Plot Sigma EMG
+    # Plot Sigma motion
     plt.subplot(3, 1, 1)
     plt.plot(sigma_motion, label='Sigma Motion (Vicon)', color='b')
-    plt.ylabel('Sigma EMG')
+    plt.ylabel('Sigma Motion')
+    plt.title('Motion-based Hand Closure Estimation (Vicon)')
+
     plt.ylim(0, 1.1)
-    plt.title('Synergy-based Hand Closure Estimation (GapWatch)')
     plt.legend()
 
-    # Plot Sigma Motion
+    # Plot Sigma emg
     plt.subplot(3, 1, 2)
-    plt.plot(sigma_emg, label='Sigma EMG (GapWatch)', color='g')
-    plt.ylabel('Sigma Motion')
+    plt.plot(sigma_emg, label='Sigma EMG (BioGAP)', color='g')
+    plt.ylabel('Sigma EMG')
     plt.ylim(0, 1.1)
-    plt.title('Motion-based Hand Closure Estimation (Vicon)')
+    plt.title('Synergy-based Hand Closure Estimation (BioGAP)')
+
     plt.legend()
 
     # Plot Sigma Error
@@ -375,6 +377,40 @@ def plot_signals(original, bandpassed, notch_removed, rms_signal, fs, channel_nu
 
 
 
+#-------------------------------------------------------------------------------------------
+def plot_test_results(emg_data_test, sigma, H_estim, selected_synergies, title=''):
+    
+    
 
+    plt.figure(figsize=(8, 5))
 
+    # Panel 1: Original EMG Signals
+    plt.subplot(3, 1, 1)
+    plt.plot(emg_data_test)
+    plt.title(f'Original Test Data')
+    plt.ylabel('Amplitude (mV)')
+    plt.xlabel('Time (samples)')
+    plt.xticks()
+
+    # Panel 2: Synergy Activation Patterns of test data
+    plt.subplot(3, 1, 2)
+    for i in range(selected_synergies):
+        plt.plot(H_estim[i, :],  label=f'Synergy {i+1}')
+    plt.title('Tested Synergy Activation Over Time')
+    plt.ylabel('Amplitude (mV)')
+    plt.xlabel('Time (samples)')
+    plt.legend(loc='upper right', ncol=selected_synergies)
+    plt.xticks()
+
+    # SIgma matrix panel
+    plt.subplot(3, 1, 3)
+    plt.plot(sigma, color='g')
+    plt.ylim(0, 1.1)  # leave some space above 1
+    plt.title('Sigma-sEMG')
+    plt.xlabel("Time (samples)")
+    plt.xticks()
+    plt.ylabel("Flexion-Extention Value")
+    
+    plt.tight_layout()
+    plt.show()
 

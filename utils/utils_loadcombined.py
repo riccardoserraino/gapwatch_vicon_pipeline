@@ -1,5 +1,7 @@
 from config import *
 from utils.utils_synergies import *
+from utils.utils_loading import *
+
 
 
 #----------------------------------------------------------------------------------------------------------
@@ -119,25 +121,26 @@ def load_combined_reshape(selected_paths, topic='/emg'):
 
 
 #-------------------------------------------------------------------------------------
-from config import *
-from utils.utils_loading import *
+
 
 
 
 def load_combined_reshape_vicon(selected_paths, topic_emg='/emg'):
+    len_vicon_datasets = []
+    len_emg_datasets = []
     
     emg_data_combined = np.empty((16, 0))
     timestamps_combined = []
     duration_combined = 0
     total_ts_reshaped = 0  
 
-    pos_hand_final_combined = np.empty((3, 0))
-    rot_hand_final_combined = np.empty((4, 0))
-    pos_f1_final_combined =   np.empty((3, 0))
-    pos_f2_final_combined =   np.empty((3, 0))
-    pos_f3_final_combined =   np.empty((3, 0))
-    pos_f4_final_combined =   np.empty((3, 0))
-    pos_f5_final_combined =   np.empty((3, 0))
+    pos_hand_combined = []
+    rot_hand_combined = []
+    pos_f1_combined =   []
+    pos_f2_combined =   []
+    pos_f3_combined =   []
+    pos_f4_combined =   []
+    pos_f5_combined =   []
     
     for bag_path in selected_paths:
         
@@ -212,19 +215,20 @@ def load_combined_reshape_vicon(selected_paths, topic_emg='/emg'):
         pos_f4 = marker_positions[3]
         pos_f5 = marker_positions[4]
         min_length = min(len(pos_hand), len(rot_hand), len(pos_f1), len(pos_f2), len(pos_f3), len(pos_f4), len(pos_f5))
+        pos_hand = pos_hand[:min_length]
+        rot_hand = rot_hand[:min_length]
+        pos_f1 = pos_f1[:min_length]
+        pos_f2 = pos_f2[:min_length]
+        pos_f3 = pos_f3[:min_length]
+        pos_f4 = pos_f4[:min_length]
+        pos_f5 = pos_f5[:min_length]
+        len_vicon_datasets.append(min_length)
+        len_emg_datasets.append(len(reshaped_timestamps))
 
         n_of_times = round(len(reshaped_timestamps)/min_length)
         print("Number of times to repeat Vicon data to match Gapwatch data:", n_of_times)
 
-        pos_hand_final = []
-        rot_hand_final = []
-        pos_f1_final = []
-        pos_f2_final = []
-        pos_f3_final = []
-        pos_f4_final = []
-        pos_f5_final = []
-
-
+        '''
         for i in range(min_length):
             for j in range(n_of_times):                
                 pos_hand_final.append(pos_hand[i])
@@ -275,7 +279,6 @@ def load_combined_reshape_vicon(selected_paths, topic_emg='/emg'):
         pos_f4_final = np.array(pos_f4_final).T
         pos_f5_final = np.array(pos_f5_final).T
         print("pos_hand", pos_hand_final.shape)
-
         pos_hand_final_combined = np.hstack((pos_hand_final_combined, pos_hand_final))
         rot_hand_final_combined = np.hstack((rot_hand_final_combined, rot_hand_final))
         pos_f1_final_combined =   np.hstack((pos_f1_final_combined, pos_f1_final))
@@ -284,9 +287,15 @@ def load_combined_reshape_vicon(selected_paths, topic_emg='/emg'):
         pos_f4_final_combined =   np.hstack((pos_f4_final_combined, pos_f4_final))
         pos_f5_final_combined =   np.hstack((pos_f5_final_combined, pos_f5_final))
         print("pos_hand_final", pos_hand_final_combined.shape)
-
+        '''
+        pos_hand_combined.extend(pos_hand)
+        rot_hand_combined.extend(rot_hand)
+        pos_f1_combined.extend(pos_f1)
+        pos_f2_combined.extend(pos_f2)
+        pos_f3_combined.extend(pos_f3)
+        pos_f4_combined.extend(pos_f4)
+        pos_f5_combined.extend(pos_f5)
     print("\nCOMBINED LOADING-RESHAPING COMPLETE.\n")
-
 
 
 
@@ -300,4 +309,4 @@ def load_combined_reshape_vicon(selected_paths, topic_emg='/emg'):
     print(f" - Duration of EMG data: {duration_combined:.2f} s")
     print(f" - Sampling frequency fs of EMG data : {fs:.2f} Hz\n")
 
-    return emg_data_combined, total_ts_reshaped, fs, pos_hand_final_combined, rot_hand_final_combined, pos_f1_final_combined, pos_f2_final_combined, pos_f3_final_combined, pos_f4_final_combined, pos_f5_final_combined
+    return emg_data_combined, total_ts_reshaped, fs, pos_hand_combined, rot_hand_combined, pos_f1_combined, pos_f2_combined, pos_f3_combined, pos_f4_combined, pos_f5_combined, len_emg_datasets, len_vicon_datasets
