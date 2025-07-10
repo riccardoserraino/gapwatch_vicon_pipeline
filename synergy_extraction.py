@@ -209,16 +209,12 @@ filtered_emg_train = np.array([preprocess_emg(final_emg_train[i, :], fs=fs_emg_t
 
 
 #-----------------------------------------------------------------------
-# Load EMG test data from a test bag file 
+# Load EMG filtered test data from a test bag file 
 #-----------------------------------------------------------------------
 
 final_emg_data_test_combined, final_timestamps_test_combined, fs_test_combined = load_combined_reshape(selected_paths, emg_topic)
 
-# Data Filtering 2 - Filter EMG data with EMG filtering specs
-filtered_emg_test = np.array([preprocess_emg(final_emg_data_test_combined[i, :], fs=fs_test_combined) for i in range(final_emg_data_test_combined.shape[0])])
-#plot_emg(filtered_emg_test, title='Filtered EMG Signals')
-
-
+#plot_emg(final_emg_data_test_combined, title='Filtered EMG Signals')
 
 
 ########################################################################
@@ -260,14 +256,14 @@ W_pinv = compute_pseudo_inverse(W) # Should be (n_synergies, n_channels)
 
 print("\nEstimating new synergy matrix H using pseudo-inverse of W and test...")
 # Estimate the synergy matrix H from the pseudo-inverse of W
-estimated_H = np.dot(W_pinv, filtered_emg_test)  
+estimated_H = np.dot(W_pinv, final_emg_data_test_combined)  
 # Should be (n_synergies, testdata_n_samples) = (n_synergies, n_channels) X (n_channels, testdata_n_samples)
 print("Estimation completed.\n")
 
 # Print insights into the estimated synergy matrix
 print("\nInsights into estimated synergy matrix:")
 print(" - Pseudo-inverse of W shape:", W_pinv.shape)  # Should be (n_synergies, n_channels)
-print(" - Filtered EMG test data shape:", filtered_emg_test.shape)  # Should be (n_channels, testdata_n_samples)
+print(" - Filtered EMG test data shape:", final_emg_data_test_combined.shape)  # Should be (n_channels, testdata_n_samples)
 print(f" - Estimated Synergy Matrix H from W_pinv shape: {estimated_H.shape} \n")   # Should be (n_synergies, testdata_n_samples)
 
 
@@ -275,11 +271,11 @@ print(f" - Estimated Synergy Matrix H from W_pinv shape: {estimated_H.shape} \n"
 print("\nReconstructing the EMG test data using estimated synergy matrix H...")
 H_train = H
 H_test = estimated_H
-reconstructed_t = nmf_emg_reconstruction(W, H_test, filtered_emg_test.T)
+reconstructed_t = nmf_emg_reconstruction(W, H_test, final_emg_data_test_combined.T)
 print(f" - Reconstructed EMG shape: {reconstructed_t.shape}\n") # Should be (testdata_n_samples, n_channels) after doing the transpose for plotting purposes
 print("Reconstruction completed.\n")
 
-plot_all_results(filtered_emg_test.T, reconstructed_t, W, H_test, optimal_synergies_nmf)
+plot_all_results(final_emg_data_test_combined.T, reconstructed_t, W, H_test, optimal_synergies_nmf)
 
 
 

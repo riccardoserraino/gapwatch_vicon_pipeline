@@ -221,8 +221,6 @@ pos_f5_final_combined =   []
 final_emg_data_test_combined, final_timestamps_test_combined, fs_test_combined, pos_hand_final_combined, rot_hand_final_combined, pos_f1_final_combined, pos_f2_final_combined, pos_f3_final_combined, pos_f4_final_combined, pos_f5_final_combined = load_combined_reshape_vicon(selected_paths, emg_topic)
 print("SHAPE: ", pos_hand_final_combined.shape)
 print("SCIAMN: ", pos_hand_final_combined[:,1])
-# Data Reshaping 2 - Filter EMG data
-filtered_emg_test = np.array([preprocess_emg(final_emg_data_test_combined[i, :], fs=fs_test_combined) for i in range(final_emg_data_test_combined.shape[0])])
 
 
 ########################################################################
@@ -262,14 +260,14 @@ W_pinv = compute_pseudo_inverse(W) # Should be (n_synergies, n_channels)
 
 print("\nEstimating new synergy matrix H using pseudo-inverse of W and test...")
 # Estimate the synergy matrix H from the pseudo-inverse of W
-estimated_H = np.dot(W_pinv, filtered_emg_test)  
+estimated_H = np.dot(W_pinv, final_emg_data_test_combined)  
 # Should be (n_synergies, testdata_n_samples) = (n_synergies, n_channels) X (n_channels, testdata_n_samples)
 print("Estimation completed.\n")
 
 # Print insights into the estimated synergy matrix
 print("\nInsights into estimated synergy matrix:")
 print(" - Pseudo-inverse of W shape:", W_pinv.shape)  # Should be (n_synergies, n_channels)
-print(" - Filtered EMG test data shape:", filtered_emg_test.shape)  # Should be (n_channels, testdata_n_samples)
+print(" - Filtered EMG test data shape:", final_emg_data_test_combined.shape)  # Should be (n_channels, testdata_n_samples)
 print(f" - Estimated Synergy Matrix H from W_pinv shape: {estimated_H.shape} \n")   # Should be (n_synergies, testdata_n_samples)
 
 
@@ -277,7 +275,7 @@ print(f" - Estimated Synergy Matrix H from W_pinv shape: {estimated_H.shape} \n"
 print("\nReconstructing the EMG test data using estimated synergy matrix H...")
 H_train = H
 H_test = estimated_H
-reconstructed_t = nmf_emg_reconstruction(W, H_test, filtered_emg_test.T)
+reconstructed_t = nmf_emg_reconstruction(W, H_test, final_emg_data_test_combined.T)
 print("Reconstruction completed.\n")
 
 
@@ -588,7 +586,6 @@ for i in range(pos_hand_final_combined.shape[1]):
 
     # Here all the angles are normalized to express the sigma value of closure of the hand
     sigma_value = normalize_angle(angle_little, angle_ring, angle_middle, angle_index, angle_thumb)
-    print("", sigma_value)
     sigma_motion.append(sigma_value)
 
 

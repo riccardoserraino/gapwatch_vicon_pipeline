@@ -1,4 +1,6 @@
 from config import *
+from utils.utils_synergies import *
+
 
 #----------------------------------------------------------------------------------------------------------
 # Ask user what dataset to combine and in what order, used for multiple gesture analysis
@@ -90,29 +92,15 @@ def load_combined_reshape(selected_paths, topic='/emg'):
 
         print("Reshaping GapWatch data completed single.\n")
         print("Loading GapWatch data completed single.\n")
-        raw_emg = np.array(raw_emg)
         
-        
+        filtered_raw = np.array([preprocess_emg(raw_emg[i, :], fs=fs) for i in range(raw_emg.shape[0])])
 
-        # Set each dataset starting and final value to zero for offset consistencies across concatenations
-        
-        # Normalize to zero the first value of the data to append
-        raw_emg_normalized = raw_emg - raw_emg[:, 0:1]  # Set first value to 0 # Normalize each channel to have the first value as 0
-
-        
-        emg_data_combined = np.hstack((emg_data_combined, raw_emg_normalized))
-
-
-        # Normalize to zero the last value of the data of origin        
-        emg_data_combined = emg_data_combined - emg_data_combined[:, -1:]  # Set last value to 0
-
-
+        emg_data_combined = np.hstack((emg_data_combined, filtered_raw))
 
         timestamps_combined.extend(reshaped_timestamps)
         duration_combined += duration
         total_ts_reshaped += len(reshaped_timestamps)
         
-
     print("\nCOMBINED LOADING-RESHAPING COMPLETE.\n")
 
 
@@ -206,21 +194,13 @@ def load_combined_reshape_vicon(selected_paths, topic_emg='/emg'):
 
         print("Reshaping GapWatch data completed single.\n")
         print("Loading GapWatch data completed single.\n")
-        raw_emg = np.array(raw_emg)
-        
+        filtered_raw = np.array([preprocess_emg(raw_emg[i, :], fs=fs) for i in range(raw_emg.shape[0])])
 
-        # Set each dataset starting and final value to zero for offset consistencies across concatenations
-        # Normalize to zero the first value of the data to append
-        raw_emg_normalized = raw_emg - raw_emg[:, 0:1]  # Set first value to 0 # Normalize each channel to have the first value as 0
-        emg_data_combined = np.hstack((emg_data_combined, raw_emg_normalized))
-        # Normalize to zero the last value of the data of origin        
-        emg_data_combined = emg_data_combined - emg_data_combined[:, -1:]  # Set last value to 0
+        emg_data_combined = np.hstack((emg_data_combined, filtered_raw))
 
         timestamps_combined.extend(reshaped_timestamps)
         duration_combined += duration
         total_ts_reshaped += len(reshaped_timestamps)
-        
-
 
 
         hand_positions, hand_orientations, marker_positions, timestamp_vicon = load_vicon_data(bag_path_vicon, topic_hand='/tf', topic_marker='/vicon/unlabeled_markers')

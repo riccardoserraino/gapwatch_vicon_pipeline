@@ -171,14 +171,13 @@ emg_data_combined, timestamps, fs = load_combined_reshape(selected_paths, topic_
 
 
 # Data  2 - Filter EMG data with EMG filtering specs
-filtered_emg_test = np.array([preprocess_emg(emg_data_combined[i, :], fs=fs) for i in range(emg_data_combined.shape[0])])
-plot_emg(filtered_emg_test, title='Filtered EMG Signals')
+#filtered_emg_test = np.array([preprocess_emg(emg_data_combined[i, :], fs=fs) for i in range(emg_data_combined.shape[0])])
+plot_emg(emg_data_combined, title='Filtered EMG Signals')
 
 
-"""
-for i in range(emg_data_combined.shape[0]):
+"""for i in range(emg_data_combined.shape[0]):
     original_signal = emg_data_combined[i, :]
     bandpassed, notch_removed, rms_signal = preprocess_emg_combined(original_signal, fs)
-    plot_signals(original_signal, bandpassed, notch_removed, rms_signal, fs, i)"""
-
+    plot_signals(original_signal, bandpassed, notch_removed, rms_signal, fs, i)
+"""
 

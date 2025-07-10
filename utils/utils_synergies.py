@@ -116,6 +116,8 @@ def butter_bandpass(signal, fs, lowcut=20, highcut=500, order=4):
     filtered_b = filtfilt(b, a, signal)
     return filtered_b
 
+
+
 # 2. Notch filter design
 def notch_filter(signal, fs, n_freq=50.0, Q=30.0):
     """Applies a notch filter to remove powerline interference."""
